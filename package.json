@@ -1,0 +1,23 @@
+{
+    "author": {
+        "author_id": "Automaker-Unofficial",
+        "display_name": "Automaker-Unofficial",
+        "email": "automak@gmail.com",
+        "website": "https://github.com/Automaker-Unofficial/Cura-Robox-Printer-Plugin"
+    },
+    "description": "Enables the user to add the CEL Robox printers to Cura and export the proprietary .gcode files.",
+    "display_name": "Robox Printer Plugin",
+    "package_id": "RoboxPrinterPlugin",
+    "package_type": "plugin",
+    "package_version": "development",
+    "sdk_version": 5,
+    "tags": [
+        "CEL",
+        "plugin",
+        "Robox",
+        "automaker",
+        "3D45",
+        "extension"
+    ],
+    "website": "https://github.com/Automaker-Unofficial/Cura-Robox-Printer-Plugin"
+}
