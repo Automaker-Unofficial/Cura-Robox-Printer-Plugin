@@ -48,11 +48,11 @@ jobs:
           name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}.curapackage
           path: RELEASE
           retention-days: 7
-      - uses: actions/upload-artifact@v2
-        name: create release archive
-        with:
-          name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}
-          path: RELEASE/files/plugins
-          retention-days: 7
+#      - uses: actions/upload-artifact@v2
+#        name: create release archive
+#        with:
+#          name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}
+#          path: RELEASE/files/plugins
+#          retention-days: 7
 
 #  todo check if event is a tag and create a release
