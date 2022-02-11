@@ -1,7 +1,6 @@
 name: Create curapacakge
 on:
   workflow_dispatch:
-  push:
 jobs:
   pack:
     runs-on: ubuntu-latest
