@@ -1,0 +1,47 @@
+name: Create curapacakge
+on:
+  workflow_dispatch:
+  release:
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF##*/}
+      - name: Install zip
+        uses: montudor/action-zip@v1
+      - run: |
+          mkdir -p RELEASE
+          cp -R files RELEASE
+          cp -R icon.png RELEASE
+          cp -R LICENSE RELEASE
+          cp -R package.json RELEASE
+      - name: zip resoruces
+        run: zip -qq -r ../RELEASE/files/plugins/RoboxPrinterPlugin/resources.zip .
+        working-directory: resources
+      - name: list files structure
+        run: find RELEASE | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+      - name: Set version of package
+        uses: jossef/action-set-json-field@v1
+        with:
+          file: RELEASE/package.json
+          field: package_version
+          value: ${{ steps.get_version.outputs.VERSION }}
+      - name: Set version of plugin
+        uses: jossef/action-set-json-field@v1
+        with:
+          file: RELEASE/files/plugins/RoboxPrinterPlugin/plugin.json
+          field: version
+          value: ${{ steps.get_version.outputs.VERSION }}   
+      - name: embed version into python code
+        run: echo "__version__ = '${{ steps.get_version.outputs.VERSION }}'" > RELEASE/files/plugins/RoboxPrinterPlugin/_version.py
+      - uses: actions/upload-artifact@v2
+        name: create release archive
+        with:
+          name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}
+          path: RELEASE/files/plugins
+          retention-days: 7
+
+#  todo check if event is a tag and create a release

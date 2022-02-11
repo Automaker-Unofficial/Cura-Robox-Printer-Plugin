@@ -1,7 +1,6 @@
-name: Pack Plugin
+name: Create curapacakge
 on:
   workflow_dispatch:
-  release:
 jobs:
   pack:
     runs-on: ubuntu-latest
@@ -37,22 +36,11 @@ jobs:
           value: ${{ steps.get_version.outputs.VERSION }}   
       - name: embed version into python code
         run: echo "__version__ = '${{ steps.get_version.outputs.VERSION }}'" > RELEASE/files/plugins/RoboxPrinterPlugin/_version.py
-#      - name: create dir for artifact
-#        run: mkdir -p artifact
-#      - name: Zip output
-#        run: zip -qq -r ../artifact/Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}.curapackage .
-#        working-directory: RELEASE
       - uses: actions/upload-artifact@v2
         name: create curapackage
         with:
           name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}.curapackage
           path: RELEASE
           retention-days: 7
-#      - uses: actions/upload-artifact@v2
-#        name: create release archive
-#        with:
-#          name: Cura-Robox-Plugin-${{ steps.get_version.outputs.VERSION }}
-#          path: RELEASE/files/plugins
-#          retention-days: 7
 
 #  todo check if event is a tag and create a release
