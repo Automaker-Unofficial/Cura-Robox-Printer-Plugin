@@ -1,6 +1,7 @@
 import re
 from . import _version
 import enum
+import GcodeParser
 
 
 class Model(enum.Enum):
@@ -52,6 +53,55 @@ class RoboxPostProcessing:
             self.roboxCloseValve) + "\"\n"
         output += "; version " + _version.__version__ + "\n"
         return output
+
+    # retruns not empty string if tool change happened in this line
+    def handle_tool_selection(self, line: GcodeParser.GcodeLine, tool_pattern: str) -> str:
+        selected_tool = ""
+        i = line.get_index_of_command_segment(tool_pattern)
+        # there is T0
+        if i > -1:
+            # T command somewhere in the middle
+            if i > 0:
+                line.remove_command_part(i)
+                line.comment += f"removed {tool_pattern}"
+                line.tool = tool_pattern
+            # T command in the start it is a tool set command
+            else:
+                selected_tool = tool_pattern
+                line.tool = selected_tool
+        return selected_tool
+
+    def execute_new(self, data: str) -> str:
+        lines = data.split("\n")
+        parsed_lines = []
+        for l in lines:
+            parsed_lines.append(GcodeParser.GcodeLine(l))
+
+        # handle tool changes: set tool for every line and remove redundant tool patterns
+        selected_tool = ""
+        for pl in parsed_lines:
+            # check if we have tool cahnges and set selected tool
+            if self.handle_tool_selection("T0") != "":
+                selected_tool = "T0"
+            elif self.handle_tool_selection("T1") != "":
+                selected_tool = "T1"
+
+            # set tool for line if not set
+            if pl.tool == "":
+                pl.tool = selected_tool
+
+            # rewrite temperature commands for second extruder
+            if len(pl.command_parts) > 0 and pl.command_parts[0] in ["M103", "M104", "M109"] and pl.tool == "T1":
+                index = pl.get_index_of_command_segment_starts_with("S")
+                if index > 0:
+                    pl.command_parts[index] = pl.command_parts[index].replace("S", "T")  # Replace "Sxxx" with "Txxx"
+
+        # todo make it writing directly to stream
+        rendered_lines = []
+        for pl in parsed_lines:
+            rendered_lines.append(pl.render())
+
+        return "\n".join(rendered_lines)
 
     def execute(self, data: str) -> str:
         lines = data.split("\n")

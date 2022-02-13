@@ -69,6 +69,7 @@ dirs = [
     ["materials", "roboxmat"],
 ]
 
+
 class RoboxPrinterPlugin(QObject, MeshWriter, Extension):
     ######################################################################
     ##  The version number of this plugin
@@ -376,13 +377,14 @@ class RoboxPrinterPlugin(QObject, MeshWriter, Extension):
                 has_settings = False
                 stream.write(processor.get_header().encode())
                 for gcode in gcode_list:
-                    # Logger.log("d", "got node" + gcode)
+                    Logger.log("d", "got node" + gcode)
                     try:
                         processed = processor.execute(gcode)
                         # Logger.log("d", "made node " + processed)
                         if gcode[:len(self._setting_keyword)] == self._setting_keyword:
                             has_settings = True
                         stream.write(processed.encode())
+                        stream.write(";end gcode item\n".encode())
                     except:
                         Logger.logException("w", "Robox Plugin - Error writing gcode to file.")
                         return False
