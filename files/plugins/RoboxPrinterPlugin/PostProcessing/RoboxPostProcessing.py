@@ -1,17 +1,6 @@
 import re
-from . import _version
 import enum
-import GcodeParser
-
-
-class Model(enum.Enum):
-    dual = "cel_robox_dual"
-    quick_fill = "cel_robox_quickfill"
-
-
-class Tool(enum.Enum):
-    T0 = "T0"
-    T1 = "T1"
+from . import GcodeParser
 
 
 class ValveState(enum.Enum):
@@ -21,20 +10,20 @@ class ValveState(enum.Enum):
 
 
 class RoboxPostProcessing:
-    def __init__(self, model_name: str, close_valve: bool):
+    def __init__(self, model_name: str, close_valve: bool, version: str):
         super().__init__()
         try:
-            Model(model_name)
+            GcodeParser.Model(model_name)
         except ValueError:
             raise "printer is not supported by robox plugin"
 
         self.roboxCloseValve = close_valve
-        self.model = Model(model_name)
+        self.model = GcodeParser.Model(model_name)
 
         # set executor function
-        if self.model == Model.dual:
+        if self.model == GcodeParser.Model.dual:
             self.executor_func = self.dualRobox
-        if self.model == Model.quick_fill:
+        if self.model == GcodeParser.Model.quick_fill:
             self.executor_func = self.QuickFillRobox
 
         self.t0Pattern = re.compile("T0(\s|$)")
@@ -45,13 +34,14 @@ class RoboxPostProcessing:
         self.forwardPattern = re.compile("E\d+")
         self.selectedTool = ""
         self.valve_state = ValveState.Undefined
+        self.verion = version
 
     def get_header(self) -> str:
         output = ""
         # if index == 0:
         output += "; Selected robox profile: " + self.model.value + ", close valve \"" + str(
             self.roboxCloseValve) + "\"\n"
-        output += "; version " + _version.__version__ + "\n"
+        output += "; version " + self.verion + "\n"
         return output
 
     # retruns not empty string if tool change happened in this line
@@ -81,9 +71,9 @@ class RoboxPostProcessing:
         selected_tool = ""
         for pl in parsed_lines:
             # check if we have tool cahnges and set selected tool
-            if self.handle_tool_selection("T0") != "":
+            if self.handle_tool_selection(pl, "T0") != "":
                 selected_tool = "T0"
-            elif self.handle_tool_selection("T1") != "":
+            elif self.handle_tool_selection(pl, "T1") != "":
                 selected_tool = "T1"
 
             # set tool for line if not set
@@ -95,6 +85,34 @@ class RoboxPostProcessing:
                 index = pl.get_index_of_command_segment_starts_with("S")
                 if index > 0:
                     pl.command_parts[index] = pl.command_parts[index].replace("S", "T")  # Replace "Sxxx" with "Txxx"
+
+        tool = ""
+        valve_state = GcodeParser.ValveState.Undefined
+        # add valve closing and opening routines
+        for pl in parsed_lines:
+            # check if line is working movement
+            if pl.get_index_of_command_segment("G1") == 0:
+                if pl.tool != tool:
+                    # tool changed
+                    valve_state = GcodeParser.ValveState.Closed
+                tool = pl.tool
+                # if there is extruder part in command
+                if pl.get_index_of_command_segment_starts_with("E") > 0:
+                    # if it is retraction (negative extrusion)
+                    extrusion = pl.get_command_part_number("E");
+                    if extrusion < 0:
+                        # add B0 to extraction pattern
+                        pl.command_parts.insert(pl.get_index_of_command_segment_starts_with("E") - 1, "B0")
+                        valve_state = GcodeParser.ValveState.Closed
+                    elif valve_state in [GcodeParser.ValveState.Closed, GcodeParser.ValveState.Undefined]:
+                        # we have extrusion but valve is closed add valve open command
+                        valve_state = GcodeParser.ValveState.Opened
+                        pl.command_parts.insert(pl.get_index_of_command_segment_starts_with("E") - 1, "B1")
+                    extrusion_position = pl.get_index_of_command_segment_starts_with("E")
+                    pl.command_parts[extrusion_position].replace("E",
+                                                                 GcodeParser.get_extrusion_letter(self.model, pl.tool))
+
+            pl.valve_state = valve_state
 
         # todo make it writing directly to stream
         rendered_lines = []

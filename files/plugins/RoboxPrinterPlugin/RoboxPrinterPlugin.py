@@ -25,7 +25,7 @@ import copy
 import shutil
 
 from . import _version
-from . import RoboxPostProcessing
+from .PostProcessing import RoboxPostProcessing
 
 from distutils.version import StrictVersion  # for upgrade installations
 
@@ -369,7 +369,7 @@ class RoboxPrinterPlugin(QObject, MeshWriter, Extension):
             active_machine_stack = self._application.getMachineManager().activeMachine
             print_object("active_machine_stack", active_machine_stack)
             printer_model = active_machine_stack.getDefinition().getId()
-            processor = RoboxPostProcessing.RoboxPostProcessing(printer_model, True)
+            processor = RoboxPostProcessing.RoboxPostProcessing(printer_model, True, _version.__version__)
 
             gcode_dict = getattr(scene, "gcode_dict")
             gcode_list = gcode_dict.get(active_build_plate, None)

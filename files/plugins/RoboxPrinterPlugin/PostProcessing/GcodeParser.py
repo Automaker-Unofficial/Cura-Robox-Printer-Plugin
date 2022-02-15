@@ -1,5 +1,22 @@
 import re
 import math
+import enum
+
+
+class ValveState(enum.Enum):
+    Opened = "opened"
+    Closed = "closed"
+    Undefined = "undefined"
+
+
+class Model(enum.Enum):
+    dual = "cel_robox_dual"
+    quick_fill = "cel_robox_quickfill"
+
+
+class Tool(enum.Enum):
+    T0 = "T0"
+    T1 = "T1"
 
 
 class GcodeLine:
@@ -15,14 +32,16 @@ class GcodeLine:
                 self.comment = parts[1]
         else:
             self.command = line
+            self.comment = ""
         # split command to parts to analyze them
         self.command_parts = self.command.split(" ")
         self.tool = ""
+        self.valve_state = ValveState.Undefined
 
     # created a finalized string representation of gocde line
     def render(self) -> str:
         command = ' '.join(self.command_parts)
-        return f"{command} ; {self.comment}"
+        return f"{command};{self.comment}"
 
     # returns first item of commands parts
     def get_command_type(self) -> str:
@@ -37,6 +56,7 @@ class GcodeLine:
             if s == segment:
                 return index + 1
             index += 1
+        return index
 
     # tells the position of requested command part that starts with specific prefix
     def get_index_of_command_segment_starts_with(self, prefix: str) -> int:
@@ -45,6 +65,7 @@ class GcodeLine:
             if s.startswith(prefix):
                 return index + 1
             index += 1
+        return index
 
     # remove part from command sequence by index
     def remove_command_part(self, index: int):
@@ -79,3 +100,29 @@ def calculate_line_volume(height: float, width: float, length: float):
     cylinder_volume = math.PI * width / 2 * width / 2 * height
     box_volume = height * width * length
     return box_volume + cylinder_volume
+
+
+robox_dual_extrusion = {
+    "TE": "E",
+    "T0": "D",
+}
+
+quickfill_extrusion = {
+    "T0": "E",
+    "TE": "E"
+}
+
+extrusion_letter = {
+    Model.quick_fill: {
+        "T0": "E",
+        "TE": "E"
+    },
+    Model.dual: {
+        "T0": "D",
+        "TE": "E"
+    },
+}
+
+
+def get_extrusion_letter(model, tool):
+    return extrusion_letter[model, tool]
