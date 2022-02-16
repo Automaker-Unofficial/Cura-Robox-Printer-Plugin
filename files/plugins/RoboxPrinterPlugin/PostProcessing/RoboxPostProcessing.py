@@ -86,6 +86,7 @@ class RoboxPostProcessing:
                 if index > 0:
                     pl.command_parts[index] = pl.command_parts[index].replace("S", "T")  # Replace "Sxxx" with "Txxx"
 
+        lines_with_valve = []
         tool = ""
         valve_state = GcodeParser.ValveState.Undefined
         # add valve closing and opening routines
@@ -108,17 +109,20 @@ class RoboxPostProcessing:
                     elif valve_state in [GcodeParser.ValveState.Closed, GcodeParser.ValveState.Undefined]:
                         # we have extrusion but valve is closed add valve open command
                         valve_state = GcodeParser.ValveState.Opened
-                        pl.command_parts.insert(pl.get_index_of_command_segment_starts_with("E") - 1, "B1")
-                        pl.add_comment("added B1")
+                        # todo calculate extrusion based on diameter
+                        lines_with_valve.append(GcodeParser.create_valve_open_fill_command(0.4, tool, valve_state))
+                        pl.add_comment("added valve opening before")
                     extrusion_position = pl.get_index_of_command_segment_starts_with("E")
-                    pl.command_parts[extrusion_position].replace("E",
-                                                                 GcodeParser.get_extrusion_letter(self.model, pl.tool))
+                    # get extrusion command for printer and tool
+                    ext = GcodeParser.get_extrusion_letter(self.model, pl.tool)
+                    pl.command_parts[extrusion_position].replace("E", ext)
 
             pl.valve_state = valve_state
+            lines_with_valve.append(pl)
 
         # todo make it writing directly to stream
         rendered_lines = []
-        for pl in parsed_lines:
+        for pl in lines_with_valve:
             rendered_lines.append(pl.render())
 
         return "\n".join(rendered_lines)

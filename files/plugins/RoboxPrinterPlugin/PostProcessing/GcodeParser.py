@@ -136,3 +136,10 @@ extrusion_letter = {
 
 def get_extrusion_letter(model, tool):
     return extrusion_letter[model.value][tool]
+
+
+def create_valve_open_fill_command(diameter: float, tool: str, valve_state: ValveState) -> GcodeLine:
+    line = GcodeLine(f"G1 B1 F150 E{round(diameter * 0.75, 3)}")
+    line.tool = tool
+    line.valve_state = valve_state
+    line.add_comment(f"open valve and fill the nozzle {tool} with filament")
