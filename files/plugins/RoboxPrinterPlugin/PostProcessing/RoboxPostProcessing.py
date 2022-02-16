@@ -53,7 +53,7 @@ class RoboxPostProcessing:
             # T command somewhere in the middle
             if i > 0:
                 line.remove_command_part(i)
-                line.comment += f"removed {tool_pattern}"
+                line.add_comment(f"removed {tool_pattern}")
                 line.tool = tool_pattern
             # T command in the start it is a tool set command
             else:
@@ -99,15 +99,17 @@ class RoboxPostProcessing:
                 # if there is extruder part in command
                 if pl.get_index_of_command_segment_starts_with("E") > 0:
                     # if it is retraction (negative extrusion)
-                    extrusion = pl.get_command_part_number("E");
+                    extrusion = pl.get_command_part_number("E")
                     if extrusion < 0:
                         # add B0 to extraction pattern
                         pl.command_parts.insert(pl.get_index_of_command_segment_starts_with("E") - 1, "B0")
+                        pl.add_comment("added B0")
                         valve_state = GcodeParser.ValveState.Closed
                     elif valve_state in [GcodeParser.ValveState.Closed, GcodeParser.ValveState.Undefined]:
                         # we have extrusion but valve is closed add valve open command
                         valve_state = GcodeParser.ValveState.Opened
                         pl.command_parts.insert(pl.get_index_of_command_segment_starts_with("E") - 1, "B1")
+                        pl.add_comment("added B1")
                     extrusion_position = pl.get_index_of_command_segment_starts_with("E")
                     pl.command_parts[extrusion_position].replace("E",
                                                                  GcodeParser.get_extrusion_letter(self.model, pl.tool))

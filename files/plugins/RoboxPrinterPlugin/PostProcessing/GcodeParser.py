@@ -23,10 +23,12 @@ class GcodeLine:
     def __init__(self, line: str):
         super().__init__()
         # check if line has comments
+        self.command = ""
         if ";" in line:
             parts = line.split(";")
             if parts[0].strip() == "":
                 self.comment = line
+                self.comment = self.comment.replace(";", "", 1)
             else:
                 self.command = parts[0]
                 self.comment = parts[1]
@@ -35,13 +37,25 @@ class GcodeLine:
             self.comment = ""
         # split command to parts to analyze them
         self.command_parts = self.command.split(" ")
+        for i, c in enumerate(self.command_parts):
+            self.command_parts[i] = c.strip()
         self.tool = ""
         self.valve_state = ValveState.Undefined
 
     # created a finalized string representation of gocde line
     def render(self) -> str:
+        if len(self.command_parts) == 0:
+            return f";{self.comment}"
         command = ' '.join(self.command_parts)
-        return f"{command};{self.comment}"
+        if self.comment != "":
+            command = f"{command};{self.comment}"
+        return command
+
+    def add_comment(self, comment: str):
+        delimiter = ""
+        if self.comment != "":
+            delimiter = ";"
+        self.comment += f"{delimiter} {comment}"
 
     # returns first item of commands parts
     def get_command_type(self) -> str:
@@ -51,21 +65,17 @@ class GcodeLine:
 
     # tells the position of requested command part
     def get_index_of_command_segment(self, segment: str) -> int:
-        index = -1
-        for s in self.command_parts:
+        for i, s in enumerate(self.command_parts):
             if s == segment:
-                return index + 1
-            index += 1
-        return index
+                return i
+        return -1
 
     # tells the position of requested command part that starts with specific prefix
     def get_index_of_command_segment_starts_with(self, prefix: str) -> int:
-        index = -1
-        for s in self.command_parts:
+        for i, s in enumerate(self.command_parts):
             if s.startswith(prefix):
-                return index + 1
-            index += 1
-        return index
+                return i
+        return -1
 
     # remove part from command sequence by index
     def remove_command_part(self, index: int):
@@ -113,16 +123,16 @@ quickfill_extrusion = {
 }
 
 extrusion_letter = {
-    Model.quick_fill: {
+    Model.quick_fill.value: {
         "T0": "E",
-        "TE": "E"
+        "T1": "E"
     },
-    Model.dual: {
+    Model.dual.value: {
         "T0": "D",
-        "TE": "E"
+        "T1": "E"
     },
 }
 
 
 def get_extrusion_letter(model, tool):
-    return extrusion_letter[model, tool]
+    return extrusion_letter[model.value][tool]
