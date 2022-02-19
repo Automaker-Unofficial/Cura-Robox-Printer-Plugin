@@ -109,6 +109,9 @@ class RoboxPostProcessing:
                     # if it is retraction (negative extrusion)
                     extrusion = pl.get_command_part_number("E")
                     if extrusion < 0:
+                        # ignore retraction line if comment has _ignore
+                        if "_ignore" in pl.comment:
+                            continue
                         valve_volume_left = valve_volume
                         start_index = len(lines_with_valve) - 1
                         index_delta = 0
@@ -117,7 +120,7 @@ class RoboxPostProcessing:
                         while len(movement_indexes) < 10 and start_index - index_delta > -1:
                             index = start_index - index_delta
                             m_line = lines_with_valve[index]
-                            # ceck if line has movements
+                            # check if line has movements
                             if m_line.get_index_prefix("X") > -1 and m_line.get_index_prefix("Y") > -1:
                                 movement_indexes.append(index)
                             index_delta += 1
@@ -158,9 +161,7 @@ class RoboxPostProcessing:
                             # remove extrusion part since we add valve command
                             valve_line.remove_command_part(extrusion_index)
                             valve_line.add_comment(f"removed extrusion {extrusion_length}")
-                            b_number = 0
-                            if valve_volume != valve_volume_left:
-                                b_number = gp.get_valve_opening(valve_volume, valve_volume_left)
+                            b_number = gp.get_valve_opening(valve_volume, valve_volume_left)
                             valve_line.command_parts.append(f"B{b_number}")
                             valve_volume_left -= volume
                             valve_line.add_comment("valve routine")

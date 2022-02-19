@@ -82,6 +82,10 @@ class GcodeLine:
     def remove_command_part(self, index: int):
         self.command_parts.pop(index)
 
+    # returns comment
+    def get_comment(self) -> str:
+        self.comment
+
     # remove part from command sequence by name
     def remove_command_part_by_name(self, segment: str):
         index = 0
@@ -173,4 +177,7 @@ def get_volume_form_extrusion_length(length: float):
 
 # converts valve volume into valve opening percents
 def get_valve_opening(nozzle_volume, volume_to_extrude):
-    return round(1 - (volume_to_extrude / nozzle_volume), 2)
+    value = round(1 - (volume_to_extrude / nozzle_volume), 2)
+    if value == 0:
+        return 0
+    return value

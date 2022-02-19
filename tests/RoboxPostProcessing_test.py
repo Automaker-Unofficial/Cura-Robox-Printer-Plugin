@@ -11,11 +11,11 @@ class TestPostProcessing(unittest.TestCase):
         result_file.write(result)
         result_file.close()
         out_file = open("dual_material1_out.stl", "r")
-        self.assertEqual(result, out_file.read())
+        self.assertEqual(out_file.read(), result)
         in_file.close()
         out_file.close()
 
-    def test_valve_open_valve_close(self):
+    def test_valve_open_close(self):
         processor = RoboxPostProcessing.RoboxPostProcessing("cel_robox_dual", True, "development")
         in_file = open("dual_material2_in.stl", "r")
         result = processor.execute_new(in_file.read())
@@ -23,8 +23,6 @@ class TestPostProcessing(unittest.TestCase):
         result_file.write(result)
         result_file.close()
         out_file = open("dual_material2_out.stl", "r")
-        self.assertEqual(result, out_file.read())
+        self.assertEqual(out_file.read(), result)
         in_file.close()
         out_file.close()
-
-
