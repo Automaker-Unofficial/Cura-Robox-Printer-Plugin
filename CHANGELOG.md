@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Fixed github actions to generate package for release and package for manual instalation
 - Fixed quickfill start and finish scripts to make it work
+- Adjusted fast profile line width to improve quality
 
 ## [0.0.1-beta] - 2014-05-31
 ### Added
