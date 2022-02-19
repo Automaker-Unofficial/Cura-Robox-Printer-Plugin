@@ -1,0 +1,19 @@
+T0
+G0 F3600 X114.389 Y71.397
+G1 B1 F150 E0.3; open valve and fill the nozzle T0 with filament
+G1 F1500 X119.257 Y76.265 E0.82613; added valve opening before
+G0 F3600 X119.38 Y75.822
+G1 F1500 X114.833 Y71.275 E0.77165
+G0 F3600 X115.322 Y71.199
+G1 F1500 X119.456 Y75.333 E0.70156
+G0 F3600 X119.464 Y74.775
+G1 F1500 X115.879 Y71.19 E0.60839
+G0 F3600 X116.546 Y71.291
+G1 F1500 X119.363 Y74.109 E0.47815
+G1 X119.433 Y74.179
+G0 F3600 X119.029 Y73.208
+G1 X118.171 Y72.351 E0.123; split result before valve closing
+G1 F1500 X117.446 Y71.626 B0; line should be split extrusion 0.26856 volume 0.6459625004586823 ; removed extrusion 0.26856; valve routine
+G1 X117.376 Y71.556; no extrusion valve routine
+M104 S240
+; valve routine end, retraction removed
