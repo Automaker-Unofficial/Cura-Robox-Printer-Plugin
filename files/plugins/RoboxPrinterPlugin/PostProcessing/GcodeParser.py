@@ -102,13 +102,6 @@ class GcodeLine:
             return float(rr[0])
 
 
-# get distance between lines
-def get_distance_between_lines(line1: GcodeLine, line2: GcodeLine) -> float:
-    p1 = [line1.get_command_part_number("X"), line1.get_command_part_number("Y")]
-    p2 = [line2.get_command_part_number("X"), line2.get_command_part_number("Y")]
-    return math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2))
-
-
 def split_line_by_coef(line1: GcodeLine, line2: GcodeLine, extrusion, coef) -> GcodeLine:
     p1 = [line1.get_command_part_number("X"), line1.get_command_part_number("Y")]
     p2 = [line2.get_command_part_number("X"), line2.get_command_part_number("Y")]
@@ -122,62 +115,6 @@ def split_line_by_coef(line1: GcodeLine, line2: GcodeLine, extrusion, coef) -> G
     line.add_comment("split result before valve closing")
     return line
 
-
-# simplified model of filament line: half cylinder + box + half cylinder
-# it will be used to calculate valve close routines
-def calculate_line_volume(height: float, width: float, length: float):
-    cylinder_volume = math.pi * width / 2 * width / 2 * height
-    box_volume = height * width * length
-    return box_volume + cylinder_volume
-
-
-# calculates line from volume to be extracted
-def length_from_volume(height: float, width: float, volume: float):
-    return volume / (height * width)
-
-
-robox_dual_extrusion = {
-    "TE": "E",
-    "T0": "D",
-}
-
-quickfill_extrusion = {
-    "T0": "E",
-    "TE": "E"
-}
-
-extrusion_letter = {
-    Model.quick_fill.value: {
-        "T0": "E",
-        "T1": "E"
-    },
-    Model.dual.value: {
-        "T0": "D",
-        "T1": "E"
-    },
-}
-
-
-def get_extrusion_letter(model, tool):
-    return extrusion_letter[model.value][tool]
-
-
-def create_valve_open_fill_command(diameter: float, tool: str, valve_state: ValveState) -> GcodeLine:
-    line = GcodeLine(f"G1 B1 F150 E{round(diameter * 0.75, 3)}")
-    line.tool = tool
-    line.valve_state = valve_state
-    line.add_comment(f"open valve and fill the nozzle {tool} with filament")
-    return line
-
-
 def get_volume_form_extrusion_length(length: float):
     r = 1.75 / 2
     return r ** 2 * math.pi * length
-
-
-# converts valve volume into valve opening percents
-def get_valve_opening(nozzle_volume, volume_to_extrude):
-    value = round(1 - (volume_to_extrude / nozzle_volume), 2)
-    if value == 0:
-        return 0
-    return value

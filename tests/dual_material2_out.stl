@@ -12,7 +12,7 @@ G0 F3600 X116.546 Y71.291
 G1 F1500 X119.363 Y74.109 E0.47815
 G1 X119.433 Y74.179
 G0 F3600 X119.029 Y73.208
-G1 X118.171 Y72.351 E0.123; split result before valve closing
+G1 X118.294 Y72.473 E0.1438; split result before valve closing
 G1 F1500 X117.446 Y71.626 B0; line should be split extrusion 0.26856 volume 0.6459625004586823 ; removed extrusion 0.26856; valve routine
 G1 X117.376 Y71.556; no extrusion valve routine
 M104 S240
