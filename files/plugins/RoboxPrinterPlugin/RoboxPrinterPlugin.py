@@ -51,8 +51,6 @@ from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5.QtGui import QPixmap, QScreen, QColor, qRgb, QImageReader, QImage, QDesktopServices
 from PyQt5.QtCore import QByteArray, QBuffer, QIODevice, QRect, Qt, QSize, pyqtSlot, QObject, QUrl, pyqtSlot
 
-from . import G3DremHeader
-
 catalog = i18nCatalog("cura")
 
 files = [
@@ -376,10 +374,12 @@ class RoboxPrinterPlugin(QObject, MeshWriter, Extension):
             if gcode_list is not None:
                 has_settings = False
                 stream.write(processor.get_header().encode())
+                # set tool to default value
+                tool = "T0"
                 for gcode in gcode_list:
                     Logger.log("d", "got node" + gcode)
                     try:
-                        processed = processor.execute(gcode)
+                        processed, tool = processor.execute(gcode, tool)
                         # Logger.log("d", "made node " + processed)
                         if gcode[:len(self._setting_keyword)] == self._setting_keyword:
                             has_settings = True

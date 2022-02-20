@@ -95,6 +95,9 @@ class GcodeLine:
         if index < len(self.command_parts) - 1:
             self.command_parts.pop(index)
 
+    def contains_prefix(self, prefix: str) -> bool:
+        return self.get_index_prefix(prefix) > -1
+
     def get_command_part_number(self, prefix: str) -> float:
         index = self.get_index_prefix(prefix)
         if index > -1:
@@ -114,6 +117,7 @@ def split_line_by_coef(line1: GcodeLine, line2: GcodeLine, extrusion, coef) -> G
     line = GcodeLine(f"G1 X{x} Y{y} E{ext}")
     line.add_comment("split result before valve closing")
     return line
+
 
 def get_volume_form_extrusion_length(length: float):
     r = 1.75 / 2

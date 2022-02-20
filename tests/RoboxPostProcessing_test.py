@@ -6,7 +6,7 @@ class TestPostProcessing(unittest.TestCase):
     def test_execute_new(self):
         processor = RoboxPostProcessing.RoboxPostProcessing("cel_robox_dual", True, "development")
         in_file = open("dual_material1_in.stl", "r")
-        result = processor.execute(in_file.read())
+        result, tool = processor.execute(in_file.read(), "T1")
         result_file = open("dual_material1_result.stl", "w")
         result_file.write(result)
         result_file.close()
@@ -18,7 +18,7 @@ class TestPostProcessing(unittest.TestCase):
     def test_valve_open_close(self):
         processor = RoboxPostProcessing.RoboxPostProcessing("cel_robox_dual", True, "development")
         in_file = open("dual_material2_in.stl", "r")
-        result = processor.execute(in_file.read())
+        result, tool = processor.execute(in_file.read(), "T1")
         result_file = open("dual_material2_result.stl", "w")
         result_file.write(result)
         result_file.close()

@@ -50,16 +50,16 @@ class RoboxPostProcessing:
                 line.tool = selected_tool
         return selected_tool
 
-    def execute(self, data: str) -> str:
+    def execute(self, data: str, tool: str) -> str:
         lines = data.split("\n")
         parsed_lines = []
         for l in lines:
             parsed_lines.append(gp.GcodeLine(l))
 
         # handle tool changes: set tool for every line and remove redundant tool patterns
-        selected_tool = ""
+        selected_tool = tool
         for pl in parsed_lines:
-            # check if we have tool cahnges and set selected tool
+            # check if we have tool changes and set selected tool
             if self.handle_tool_selection(pl, "T0") != "":
                 selected_tool = "T0"
             elif self.handle_tool_selection(pl, "T1") != "":
@@ -87,13 +87,11 @@ class RoboxPostProcessing:
                     valve_state = gp.ValveState.Closed
                 tool = pl.tool
                 # if there is extruder part in command
-                if pl.get_index_prefix("E") > 0:
+                # ignore retraction line if comment has _ignore
+                if pl.contains_prefix("E") and "_ignore" not in pl.comment:
                     # if it is retraction (negative extrusion)
                     extrusion = pl.get_command_part_number("E")
                     if extrusion < 0:
-                        # ignore retraction line if comment has _ignore
-                        if "_ignore" in pl.comment:
-                            continue
                         valve_volume_left = self.printhead.get_valve_volume(tool)
                         start_index = len(lines_with_valve) - 1
                         index_delta = 0
@@ -103,7 +101,7 @@ class RoboxPostProcessing:
                             index = start_index - index_delta
                             m_line = lines_with_valve[index]
                             # check if line has movements
-                            if m_line.get_index_prefix("X") > -1 and m_line.get_index_prefix("Y") > -1:
+                            if m_line.contains_prefix("X") and m_line.contains_prefix("Y"):
                                 movement_indexes.append(index)
                             index_delta += 1
                         for i, idx in enumerate(movement_indexes):
@@ -175,4 +173,4 @@ class RoboxPostProcessing:
                 logging.error(f"{i} is none")
             rendered_lines.append(pl.render())
 
-        return "\n".join(rendered_lines)
+        return "\n".join(rendered_lines), tool
